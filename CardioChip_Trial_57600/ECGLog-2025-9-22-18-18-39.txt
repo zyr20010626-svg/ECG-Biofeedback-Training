@@ -1,0 +1,1 @@
+timestamp: ADC HeartRate4sAverage HeartRate30sAverage

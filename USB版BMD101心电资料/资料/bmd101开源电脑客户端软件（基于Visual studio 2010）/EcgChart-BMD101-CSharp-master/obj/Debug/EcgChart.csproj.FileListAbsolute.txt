@@ -1,0 +1,9 @@
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\bin\Debug\EcgChart.exe.config
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\bin\Debug\EcgChart.exe
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\bin\Debug\EcgChart.pdb
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\bin\Debug\ZedGraph.dll
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\obj\Debug\EcgChart.Form1.resources
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\obj\Debug\EcgChart.Properties.Resources.resources
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\obj\Debug\EcgChart.csproj.GenerateResource.Cache
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\obj\Debug\EcgChart.exe
+C:\Users\Administrator\Desktop\EcgChart-BMD101-CSharp-master\EcgChart-BMD101-CSharp-master\obj\Debug\EcgChart.pdb
