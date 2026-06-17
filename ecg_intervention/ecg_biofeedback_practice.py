@@ -301,13 +301,17 @@ class SimulatedWorkerThread(threading.Thread):
         super().__init__(daemon=True)
         self.queue = queue.Queue()
         self._running = False
+        self._current_hr = 70.0  # start at 70 BPM, drift gradually
 
     def run(self):
         self._running = True
         self.queue.put(('connected', True))
 
         while self._running:
-            hr = 60 + random.uniform(0, 20)
+            # Gradually drift HR, not random jumps
+            self._current_hr += random.uniform(-2.0, 2.0)
+            self._current_hr = max(60, min(80, self._current_hr))
+            hr = self._current_hr
             interval = 60.0 / hr * (1 + random.uniform(-0.03, 0.03))
 
             t0 = time.perf_counter()
@@ -567,6 +571,12 @@ class ExperimentController:
                 rr = now - self._r_peak_times[-2]
                 if 0.24 <= rr <= 3.0:  # 20~250 BPM physiological range
                     self.heart_rate = round(60.0 / rr, 1)
+                    # Also add to hr_timestamps so the running avg works
+                    ts = self._exp_start_wall_time + (now - self._exp_start_time)
+                    self._hr_timestamps.append((ts, self.heart_rate))
+                    # Prune entries older than 30s
+                    while len(self._hr_timestamps) > 2 and ts - self._hr_timestamps[0][0] > 30:
+                        self._hr_timestamps.popleft()
             self._on_r_peak_experiment(now)
         elif event_type == 'raw_data':
             now = time.perf_counter()
@@ -1433,10 +1443,14 @@ class PsychopyExperiment:
         self.stim['phase_info'].setAutoDraw(True)
         self.stim['phase_info'].text = ctrl.phase_info_text
 
-        # HR
+        # HR — use 4s moving average for stable display
         self.stim['hr_label'].setAutoDraw(True)
         if ctrl.heart_rate > 0:
-            self.stim['hr_value'].text = f"{ctrl.heart_rate:.0f} BPM"
+            smoothed = ctrl._compute_hr_avg(4)
+            if smoothed > 0:
+                self.stim['hr_value'].text = f"{smoothed:.0f} BPM"
+            else:
+                self.stim['hr_value'].text = f"{ctrl.heart_rate:.0f} BPM"
         self.stim['hr_value'].setAutoDraw(True)
 
         # Accuracy (reset pos after wait_key)

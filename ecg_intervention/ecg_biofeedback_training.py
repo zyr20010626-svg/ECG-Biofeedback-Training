@@ -274,14 +274,17 @@ class SimulatedWorker(QtCore.QObject):
     def __init__(self):
         super().__init__()
         self._running = False
+        self._current_hr = 70.0  # start at 70 BPM, drift gradually
 
     def run(self):
         self._running = True
         self.connected.emit(True)
 
         while self._running:
-            # Simulate heart rate variability (60-80 BPM range)
-            hr = 60 + random.uniform(0, 20)
+            # Gradually drift HR, not random jumps
+            self._current_hr += random.uniform(-2.0, 2.0)
+            self._current_hr = max(60, min(80, self._current_hr))
+            hr = self._current_hr
             interval = 60.0 / hr
             # Add small variability
             interval *= (1 + random.uniform(-0.03, 0.03))
@@ -644,6 +647,11 @@ class ExperimentController(QtCore.QObject):
             rr = now - self._r_peak_times[-2]
             if 0.24 <= rr <= 3.0:  # 20~250 BPM physiological range
                 self.heart_rate = round(60.0 / rr, 1)
+                # Also add to hr_timestamps so running avg works
+                ts = self._exp_start_wall_time + (now - self._exp_start_time)
+                self._hr_timestamps.append((ts, self.heart_rate))
+                while len(self._hr_timestamps) > 2 and ts - self._hr_timestamps[0][0] > 30:
+                    self._hr_timestamps.popleft()
                 self.sig_heart_rate.emit(self.heart_rate)
         self._on_r_peak_experiment(now)
 
@@ -1285,7 +1293,7 @@ class MainWindow(QtWidgets.QMainWindow):
         c.sig_phase_info.connect(self.phase_label.setText)
         c.sig_trial_progress.connect(self.trial_progress_label.setText)
         c.sig_accuracy.connect(self._update_accuracy)
-        c.sig_heart_rate.connect(lambda hr: self.hr_value.setText(f"{hr:.0f} BPM"))
+        c.sig_heart_rate.connect(self._update_heart_rate_display)
         c.sig_heart_beat.connect(self.heart_widget.beat)
         c.sig_heartbeat_count.connect(self._update_heartbeat_count)
         c.sig_show_rest.connect(self._show_rest_screen)
@@ -1302,6 +1310,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def _update_heartbeat_count(self, current, target):
         self.count_label.setText(f"心跳计数: {current}/{target}")
 
+    def _update_heart_rate_display(self, hr):
+        """Update HR display with 4s moving average smoothing."""
+        smoothed = self.controller._compute_hr_avg(4)
+        if smoothed > 0:
+            self.hr_value.setText(f"{smoothed:.0f} BPM")
+        else:
+            self.hr_value.setText(f"{hr:.0f} BPM")
 
     def _on_red_signal_on(self):
         """Show red glowing border during feedback response window."""
